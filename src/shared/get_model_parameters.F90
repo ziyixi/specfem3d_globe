@@ -363,6 +363,20 @@
     stop 'model MOON_MEENA is not fully implemented yet'
 
   ! 3-D models
+  case ('3d_ref')
+    CASE_3D = .true.
+    CRUSTAL = .true.
+    ONE_CRUST = .true.
+    REFERENCE_1D_MODEL = REFERENCE_MODEL_1DREF
+    TRANSVERSE_ISOTROPY = .true.
+
+  case ('3d_ak135')
+    CASE_3D = .true.
+    CRUSTAL = .true.
+    ONE_CRUST = .true.
+    REFERENCE_1D_MODEL = REFERENCE_MODEL_AK135F_NO_MUD
+    TRANSVERSE_ISOTROPY = .false.
+
   case ('transversely_isotropic_prem_plus_3d_crust_2.0')
     CASE_3D = .true.
     CRUSTAL = .true.
