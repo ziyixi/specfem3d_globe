@@ -1,55 +1,43 @@
-!=====================================================================
-!
-!          S p e c f e m 3 D  G l o b e  V e r s i o n  7 . 0
-!          --------------------------------------------------
-!
-!     Main historical authors: Dimitri Komatitsch and Jeroen Tromp
-!                        Princeton University, USA
-!                and CNRS / University of Marseille, France
-!                 (there are currently many more authors!)
-! (c) Princeton University and CNRS / University of Marseille, April 2014
-!
-! This program is free software; you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation; either version 3 of the License, or
-! (at your option) any later version.
-!
-! This program is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
+!= == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+        !!S p e c f e m 3 D G l o b e V e r s i o n 7.0 !--------------------------------------------------!!Main historical authors : Dimitri Komatitsch and
+    Jeroen Tromp !Princeton University,
+    USA !and CNRS / University of Marseille, France !(there are currently many more authors !) !(c)Princeton University and CNRS / University of Marseille, April 2014 !!This program is free software;
+you can redistribute it and / or modify !it under the terms of the GNU General Public License as published by !the Free Software Foundation;
+either version 3 of the License, or
+                                     !(at your option)any later version.!!This program is distributed in the hope that it will be useful,
+    !but WITHOUT ANY WARRANTY; without even the implied warranty of
 ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ! GNU General Public License for more details.
 !
 ! You should have received a copy of the GNU General Public License along
-! with this program; if not, write to the Free Software Foundation, Inc.,
-! 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-!
-!=====================================================================
+! with this program;
+if
+  not, write to the Free Software Foundation, Inc.,
+      !51 Franklin Street, Fifth Floor, Boston, MA 02110 - 1301 USA.! != == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
 
-! @configure_input@
+                                                        !@configure_input @
 
-!
-!--- user can modify parameters below
-!
+                                                        !!---user can modify parameters below !
 
-!
-! solver in single or double precision depending on the machine (4 or 8 bytes)
-!
-!  ALSO CHANGE FILE precision.h ACCORDINGLY
-!
-  integer, parameter :: SIZE_REAL = 4, SIZE_DOUBLE = 8
+                                                        !!solver in single or
+                                                    double precision depending on the machine(4 or 8 bytes) !!ALSO CHANGE FILE precision.h ACCORDINGLY !integer,
+      parameter ::SIZE_REAL = 4, SIZE_DOUBLE = 8
 
-! usually the size of integer and logical variables is the same as regular single-precision real variable
-  integer, parameter :: SIZE_INTEGER = SIZE_REAL
-  integer, parameter :: SIZE_LOGICAL = SIZE_REAL
+                                               !usually the size of integer and
+                                               logical variables is the same as regular single - precision real variable integer,
+                parameter ::SIZE_INTEGER = SIZE_REAL
+                    integer,
+                parameter ::SIZE_LOGICAL = SIZE_REAL
 
-! set to SIZE_REAL to run in single precision
-! set to SIZE_DOUBLE to run in double precision (increases memory size by 2)
-  integer, parameter :: CUSTOM_REAL = @CUSTOM_REAL@
+                !set to SIZE_REAL to run in single precision !set to SIZE_DOUBLE to run in double
+                precision(increases memory size by 2)
+                    integer,
+                parameter ::CUSTOM_REAL = @CUSTOM_REAL @
 
-!*********************************************************************************************************
+                                          !*********************************************************************************************************
 
-!! DK DK added this temporarily here to make SPECFEM3D and SPECFEM3D_GLOBE much more similar
-!! DK DK in terms of the structure of their main time iteration loop; these are future features
+                                          !!DK DK added this temporarily here to make SPECFEM3D and
+                                          SPECFEM3D_GLOBE much more similar !!DK DK in terms of the structure of their main time iteration loop; these are future features
 !! DK DK that are missing in this code but implemented in the other and that could thus be cut and pasted one day
   logical, parameter :: OUTPUT_ENERGY = .false.
   integer, parameter :: IOUT_ENERGY = 937  ! file number for the energy file
@@ -342,6 +330,11 @@
 ! by default, SAVE_MESH_FILES will use VTK formats; this will also output additional AVS_DX format files
   logical,parameter :: SAVE_MESHFILES_AVS_DX_FORMAT = .false.
 
+! use the external topo file
+  logical,parameter :: USE_EXTERNAL_TOPO_410_660 = .false.
+  character (len=*), parameter :: EXTERNAL_TOPO_410_660_FILE = &
+    'DATA/s362ani/external_topo_410_660.txt'
+    
 !!-----------------------------------------------------------
 !!
 !! GPU optimization

@@ -73,6 +73,126 @@
   character(len=80) :: hsplfl(maxhpa)
   character(len=40) :: dskker(maxker)
 
+  type topo_map
+    integer :: nlon, nlat
+    real(kind=4),dimension(:),allocatable :: lon1, lat1
+    real(kind=4),dimension(:,:),allocatable :: lon2, lat2
+    real(kind=4),dimension(:,:),allocatable :: d410, d660
+
+    contains
+      procedure, pass(this) :: read_model_file
+      procedure, pass(this) :: interp_bilinear
+  end type topo_map
+
+  type(topo_map) :: topo
+
+  contains
+
+  subroutine read_model_file(this, filename)
+
+    use constants,only: IMAIN, IIN
+
+    implicit none
+
+    class(topo_map) :: this
+    character(len=*), intent(in) :: filename 
+
+    integer :: ilon, ilat, ios
+
+    open(IIN,file=trim(filename),status='old',action='read',iostat=ios)
+    if (ios /= 0) then
+      write(IMAIN,*) 'Error opening "', trim(filename), '": ', ios
+      call flush_IMAIN()
+      call exit_MPI(0, 'Error in model s362ani in topo_map%read_model_file() routine')
+    endif
+
+    read(IIN,*,iostat=ios) this%nlon, this%nlat
+    if (ios /= 0) then
+      write(IMAIN,*) 'Error reading ', trim(filename)
+      call flush_IMAIN()
+      call exit_MPI(0, 'Error in model s362ani in topo_map%read_model_file() routine')
+    end if
+
+    allocate(this%lon1(this%nlon), this%lat1(this%nlat))
+    allocate(this%lon2(this%nlon,this%nlat), this%lat2(this%nlon,this%nlat))
+    allocate(this%d410(this%nlon,this%nlat), this%d660(this%nlon,this%nlat))
+
+    do ilat = 1, this%nlat
+      do ilon = 1, this%nlon
+        read(IIN,*,iostat=ios) this%lon2(ilon,ilat), this%lat2(ilon,ilat), &
+                               this%d410(ilon,ilat), this%d660(ilon,ilat)
+        if (ios /= 0) then
+          write(IMAIN,*) 'Error reading ', trim(filename)
+          call flush_IMAIN()
+          call exit_MPI(0, 'Error in model s362ani in topo_map%read_model_file() routine')
+        end if
+
+      end do
+    end do
+
+    close(IIN)
+
+    ! get 1D lon,lat grids
+    this%lon1 = this%lon2(:,1)
+    this%lat1 = this%lat2(1,:)
+
+    ! check if rectangular grid
+    do ilon = 1, this%nlat
+      do ilat = 1, this%nlat
+        if (     this%lat2(ilon,ilat) /= this%lat1(ilat)   &
+            .or. this%lon2(ilon,ilat) /= this%lon1(ilon) ) then
+          write(IMAIN,*) 'Not rectangular grid'
+          call flush_IMAIN()
+          call exit_MPI(0, 'Error in model s362ani in topo_map%read_model_file() routine')
+        end if
+      end do
+    end do
+
+  end subroutine
+
+  subroutine interp_bilinear(this, lon, lat, d410, d660)
+
+    implicit none
+
+    class(topo_map) :: this
+    real(kind=4) :: lon, lat
+    real(kind=4) :: d410, d660
+
+    integer :: ilon,ilat
+    real(kind=4) :: r1, r2, r3, r4, y1, y2
+
+    ! find idx, assuming lon,lat are monotonical
+    ! ilon-1, lon, ilon
+    ! ilat-1, lat, ilat
+    do ilon = 2, this%nlon
+      if ( (lon-this%lon1(ilon-1))*(lon-this%lon1(ilon)) <= 0.0 ) then
+        exit
+      end if
+    end do
+
+    do ilat = 2, this%nlat
+      if ( (lat-this%lat1(ilat-1))*(lat-this%lat1(ilat)) <= 0.0 ) then
+        exit
+      end if
+    end do
+
+    ! bilinear interpolation
+    r1 = (this%lon1(ilon)-lon)/(this%lon1(ilon)-this%lon1(ilon-1))
+    r2 = (lon-this%lon1(ilon-1))/(this%lon1(ilon)-this%lon1(ilon-1))
+
+    r3 = (this%lat1(ilat)-lat)/(this%lat1(ilat)-this%lat1(ilat-1))
+    r4 = (lat-this%lat1(ilat-1))/(this%lat1(ilat)-this%lat1(ilat-1))
+
+    y1 = r1*this%d410(ilon-1,ilat-1) + r2*this%d410(ilon,ilat-1)
+    y2 = r1*this%d410(ilon-1,ilat)   + r2*this%d410(ilon,ilat)
+    d410 = r3*y1 + r4*y2
+
+    y1 = r1*this%d660(ilon-1,ilat-1) + r2*this%d660(ilon,ilat-1)
+    y2 = r1*this%d660(ilon-1,ilat)   + r2*this%d660(ilon,ilat)
+    d660 = r3*y1 + r4*y2
+
+  end subroutine
+  
   end module model_s362ani_par
 
 !
@@ -83,7 +203,7 @@
 
 ! standard routine to setup model
 
-  use constants, only: myrank,IMAIN
+  use constants, only: myrank,IMAIN,USE_EXTERNAL_TOPO_410_660,EXTERNAL_TOPO_410_660_FILE
   use model_s362ani_par
 
   implicit none
@@ -159,6 +279,10 @@
   call bcast_all_ch(refmdl,80)
 
   call bcast_all_ch_array(varstr,maxker,40)
+
+  if (USE_EXTERNAL_TOPO_410_660) then
+    call topo%read_model_file(EXTERNAL_TOPO_410_660_FILE)
+  end if
 
   end subroutine model_s362ani_broadcast
 
@@ -1333,6 +1457,26 @@
   dvpv = 0.55*dvsv    ! scaling used in the inversion
 
   end subroutine model_s362ani_subshsv
+
+!
+!-------------------------------------------------------------------------------------------------
+!
+
+! --- evaluate depressions of the 410- and 650-km discontinuities in km from the external topo file
+
+  subroutine model_s362ani_subtopo_external(lon,lat,topo410,topo650)
+
+  use model_s362ani_par, only: topo
+
+  implicit none 
+    
+  real(kind=4),intent(in) :: lon,lat
+  real(kind=4),intent(out) :: topo410,topo650
+
+  call topo%interp_bilinear(lon, lat, topo410, topo650)
+
+  end subroutine model_s362ani_subtopo_external
+
 
 !
 !-------------------------------------------------------------------------------------------------

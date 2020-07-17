@@ -91,7 +91,11 @@
     if (r > R220/R_PLANET .or. r < R771/R_PLANET) cycle
 
     ! compute topography on 410 and 650 at current point
-    call model_s362ani_subtopo(xcolat,xlon,topo410out,topo650out)
+    if (USE_EXTERNAL_TOPO_410_660) then
+      call model_s362ani_subtopo_external(sngl(lon),sngl(lat),topo410out,topo650out)
+    else
+      call model_s362ani_subtopo(xcolat,xlon,topo410out,topo650out)
+    end if
 
     ! min/max statistics
     if (DEBUG_STATISTICS) then
