@@ -33,7 +33,7 @@ subroutine asdf_setup(file_id, path_to_add, simul_run_flag)
   implicit none
 
   ! asdf file handle
-  integer,intent(inout) :: file_id
+  integer(kind=8),intent(inout) :: file_id
   character(len=*), intent(in) :: path_to_add
   logical, intent(in) :: simul_run_flag
 
