@@ -281,6 +281,7 @@
   call bcast_all_ch_array(varstr,maxker,40)
 
   if (USE_EXTERNAL_TOPO_410_660) then
+    write(IMAIN,*) 'read in external 410/660 topo'
     call topo%read_model_file(EXTERNAL_TOPO_410_660_FILE)
   end if
 
