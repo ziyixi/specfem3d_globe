@@ -352,12 +352,6 @@
   logical,parameter :: USE_EXTERNAL_TOPO_410_660 = .false.
   character (len=*), parameter :: EXTERNAL_TOPO_410_660_FILE = &
     'DATA/s362ani/external_topo_410_660.txt'
-
-! if set the user dt time
-  logical,parameter :: USE_USER_DT = .false.
-
-! user dt time in seconds
-  double precision, parameter :: USER_DT = 0.07d0 
     
 !!-----------------------------------------------------------
 !!
