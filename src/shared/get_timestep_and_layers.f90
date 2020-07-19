@@ -652,6 +652,11 @@
       endif
     endif
 
+    ! User dt
+    if (USE_USER_DT) then 
+      DT = USER_DT
+    endif
+
   endif
 
 !---
