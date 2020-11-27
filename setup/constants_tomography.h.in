@@ -113,7 +113,7 @@
 !!
 !!-----------------------------------------------------------
   ! 1 permille of maximum for inverting Hessian
-  real(kind=CUSTOM_REAL),parameter :: THRESHOLD_HESS = 1.e-3
+  real(kind=CUSTOM_REAL),parameter :: THRESHOLD_HESS = 5.e-4
 
   ! sums all Hessians before inverting and preconditioning
   ! by default should be set to .true.
