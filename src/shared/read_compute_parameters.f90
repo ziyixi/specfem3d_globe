@@ -356,6 +356,9 @@
   if (ABSORBING_CONDITIONS .and. NCHUNKS == 3) &
     stop 'absorbing conditions not supported for three chunks yet'
 
+  if (ABSORB_USING_GLOBAL_SPONGE .and. NCHUNKS /= 6) &
+    stop 'Please set NCHUNKS to 6 in Par_file to use ABSORB_USING_GLOBAL_SPONGE'
+
   if (ATTENUATION_3D .and. .not. ATTENUATION) &
     stop 'Please set ATTENUATION to .true. in Par_file to use ATTENUATION_3D'
 
@@ -382,6 +385,9 @@
   !! DK DK this should not be difficult to fix and test, but not done yet by lack of time
   if (UNDO_ATTENUATION .and. NUMBER_OF_THIS_RUN > 1) &
     stop 'we currently do not support NUMBER_OF_THIS_RUN > 1 in the case of UNDO_ATTENUATION'
+
+  if (USE_LDDRK .and. NUMBER_OF_RUNS > 1) &
+    stop 'NUMBER_OF_RUNS should be == 1 for now when using USE_LDDRK'
 
   ! check that reals are either 4 or 8 bytes
   if (CUSTOM_REAL /= SIZE_REAL .and. CUSTOM_REAL /= SIZE_DOUBLE) &
@@ -475,8 +481,8 @@
     stop 'for GRAVITY_INTEGRALS use double precision i.e. configure the code with --enable-double-precision'
 
   ! adjoint simulations: seismogram output only works if each process writes out its local seismos
-  if (WRITE_SEISMOGRAMS_BY_MASTER .and. SIMULATION_TYPE == 2) &
-    stop 'For SIMULATION_TYPE == 2, please set WRITE_SEISMOGRAMS_BY_MASTER to .false.'
+  if (WRITE_SEISMOGRAMS_BY_MAIN .and. SIMULATION_TYPE == 2) &
+    stop 'For SIMULATION_TYPE == 2, please set WRITE_SEISMOGRAMS_BY_MAIN to .false.'
 
   end subroutine rcp_check_parameters
 
